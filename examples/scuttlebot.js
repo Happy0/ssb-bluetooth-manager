@@ -7,6 +7,8 @@ var ssbKeys = require('ssb-keys');
 var manifest = require('./manifest');
 
 var BluetoothManager = require('../bluetooth-manager');
+const makeNoauthPlugin = require('multiserver/plugins/noauth');
+const makeBluetoothPlugin = require('multiserver-bluetooth');
 
 const writablePath = path.join(__dirname, '');
 const ssbPath = path.resolve(writablePath, '.bluetooth-ssb-test');
@@ -46,8 +48,21 @@ function bluetoothTransportPlugin(stack) {
   stack.multiserver.transport(plugin);
 }
 
+function noauthTransform(stack, cfg) {
+  stack.multiserver.transform({
+    name: 'noauth',
+    create: () => {
+      return makeNoauthPlugin({
+        keys: {
+          publicKey: Buffer.from(cfg.keys.public, 'base64'),
+        },
+      });
+    },
+  });
+}
 
 require('scuttlebot/index')
+  .use(noauthTransform)
   .use(bluetoothTransportPlugin)
   .use(require('scuttlebot/plugins/plugins'))
   .use(require('scuttlebot/plugins/master'))
