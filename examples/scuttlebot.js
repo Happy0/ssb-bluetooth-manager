@@ -10,8 +10,10 @@ var BluetoothManager = require('../bluetooth-manager');
 const makeNoauthPlugin = require('multiserver/plugins/noauth');
 const makeBluetoothPlugin = require('multiserver-bluetooth');
 
-const writablePath = path.join(__dirname, '');
+const writablePath = path.join('/home/happy0/', '');
 const ssbPath = path.resolve(writablePath, '.bluetooth-ssb-test');
+
+var manifestFile = path.join(ssbPath, '/manifest.json')
 
 if (!fs.existsSync(ssbPath)) {
   mkdirp.sync(ssbPath);
@@ -26,7 +28,8 @@ config.manifest = manifest;
 config.friends.hops = 2;
 config.connections = {
   incoming: {
-    bluetooth: [{scope: 'public', transform: 'noauth'}]
+    bluetooth: [{scope: 'public', transform: 'noauth'}],
+    net: [{ port: 8008, scope: "private", "transform": "shs" }] 
   },
   outgoing: {
   },
@@ -61,12 +64,20 @@ function noauthTransform(stack, cfg) {
   });
 }
 
-require('scuttlebot/index')
+var server = require('scuttlebot/index')
   .use(noauthTransform)
   .use(bluetoothTransportPlugin)
   .use(require('scuttlebot/plugins/plugins'))
   .use(require('scuttlebot/plugins/master'))
   .use(require('scuttlebot/plugins/gossip'))
   .use(require('scuttlebot/plugins/replicate'))
+  .use(require('ssb-friends'))
+  .use(require('ssb-blobs'))
+  .use(require('ssb-query'))
+  .use(require('ssb-links'))
+  .use(require('ssb-ws'))
   .use(require('ssb-ebt'))
   .call(null, config);
+
+console.log("hi");
+fs.writeFileSync(manifestFile, JSON.stringify(server.getManifest(), null, 2))
