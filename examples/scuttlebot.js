@@ -2,7 +2,6 @@ const fs = require('fs');
 const path = require('path');
 const mkdirp = require('mkdirp');
 
-var createSbot = require('scuttlebot');
 var bluetoothMultiserv = require('multiserver-bluetooth');
 var ssbKeys = require('ssb-keys');
 var manifest = require('./manifest');
