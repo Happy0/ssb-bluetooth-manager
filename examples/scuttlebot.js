@@ -68,4 +68,5 @@ require('scuttlebot/index')
   .use(require('scuttlebot/plugins/master'))
   .use(require('scuttlebot/plugins/gossip'))
   .use(require('scuttlebot/plugins/replicate'))
+  .use(require('ssb-ebt'))
   .call(null, config);
