@@ -21,7 +21,11 @@ module.exports = function makeBluetoothManager() {
   }
 
   function writeData(data) {
-    server.write(new Buffer(data), function (err, bytesWritten) {
+
+    console.log("I want to write... ");
+    console.log(data);
+
+    server.write(data, function (err, bytesWritten) {
               if (err) {
                   console.log('Error! ' + err);
               } else {
@@ -61,7 +65,8 @@ module.exports = function makeBluetoothManager() {
   }
 
   server.on('data', function(buffer) {
-      connection.source.push(buffer.toString());
+    console.log("Received: " + buffer.toString());
+      connection.source.push(buffer);
   });
 
   return {
