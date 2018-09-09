@@ -23,7 +23,7 @@ module.exports = function makeBluetoothManager() {
   function writeData(data) {
 
     console.log("I want to write... ");
-    console.log(data);
+    console.log(data.toString());
 
     server.write(data, function (err, bytesWritten) {
               if (err) {
@@ -56,7 +56,6 @@ module.exports = function makeBluetoothManager() {
       console.log("Calling back with connection from " + clientAddress);
       onConnection(null, connection);
     }, function(error){
-    	onConnection(error, null);
     }, {uuid: UUID, channel: CHANNEL} );
   }
 
