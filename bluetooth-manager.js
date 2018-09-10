@@ -2,9 +2,13 @@ var server = new(require('bluetooth-serial-port')).BluetoothSerialPortServer();
 var pull = require('pull-stream');
 var Pushable = require('pull-pushable');
 
+// TODO: allow multiple incoming and outgoing connections. At the moment,
+// only one incoming connection is supported
 module.exports = function makeBluetoothManager() {
 
   var CHANNEL = 10;
+
+  // The UUID of the scuttlebutt bluetooth service
   var UUID = 'b0b2e90d-0cda-4bb0-8e4b-fb165cd17d48';
 
   // Only one incoming connection for now
@@ -18,6 +22,9 @@ module.exports = function makeBluetoothManager() {
 
   function disconnect(address) {
     // todo later
+
+    connection.source.end();
+    connection = null;
   }
 
   function writeData(data) {
