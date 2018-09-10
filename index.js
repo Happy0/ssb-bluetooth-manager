@@ -29,14 +29,14 @@ module.exports = function makeBluetoothManager() {
 
   function writeData(data) {
 
-    console.log("I want to write... ");
-    console.log(data.toString());
+  //  console.log("I want to write... ");
+  //  console.log(data.toString());
 
     server.write(data, function (err, bytesWritten) {
               if (err) {
                   console.log('Error! ' + err);
               } else {
-                  console.log('Send ' + bytesWritten + ' to the client!');
+              //    console.log('Send ' + bytesWritten + ' to the client!');
               }
           })
   }
@@ -71,7 +71,7 @@ module.exports = function makeBluetoothManager() {
   }
 
   server.on('data', function(buffer) {
-    console.log("Received: " + buffer.toString());
+    // console.log("Received: " + buffer.toString());
       connection.source.push(buffer);
   });
 
