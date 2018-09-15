@@ -27,8 +27,9 @@ module.exports = function makeBluetoothManager() {
         cb2(err, null);
       } else if (err) {
         console.log("Retrying...");
+        console.log(msg.toString())
 
-        setTimeout(() => write(device, msg, cb2, retries - 1), 10000);
+        setTimeout(() => write(device, msg, cb2, retries - 1), 200);
       } else {
         cb2(null, msg);
       }
@@ -36,9 +37,25 @@ module.exports = function makeBluetoothManager() {
     });
   }
 
+  function breakBuffer(buffer, bytesPerBuffer) {
+    var bufferLength = buffer.length;
+
+    var start = 0;
+    var result = [];
+
+    while (start < bufferLength) {
+      result.push(buffer.slice(start, start += bytesPerBuffer));
+    }
+
+    return result;
+  }
+
   function makeSink(device) {
-    return pull(pull.asyncMap((msg, cb2) => {
-      write(device, msg, cb2, 3);
+    return pull(
+      pull.map((buffer) => breakBuffer(buffer, 100)),
+      pull.flatten(),
+      pull.asyncMap((msg, cb2) => {
+      write(device, msg, cb2, 10);
       
     }), pull.drain());
   }
