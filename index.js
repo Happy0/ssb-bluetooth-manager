@@ -1,4 +1,6 @@
 var server = new(require('bluetooth-serial-port')).BluetoothSerialPortServer();
+var btSerial = new (require('bluetooth-serial-port')).BluetoothSerialPort();
+
 var pull = require('pull-stream');
 var Pushable = require('pull-pushable');
 
@@ -14,10 +16,64 @@ module.exports = function makeBluetoothManager() {
   // Only one incoming connection for now
   var connection = null;
 
-  function connect (address, cb) {
-    // 1 incoming only for now for testing
+  var outgoingConnection = false;
 
-    cb("Not supported yet", null);
+  var listening = true;
+
+  function write(device, msg, cb2, retries) {
+    device.write( msg, (err, bytes) => {
+      
+      if (retries == 0 && err) {
+        cb2(err, null);
+      } else if (err) {
+        console.log("Retrying...");
+
+        setTimeout(() => write(device, msg, cb2, retries - 1), 10000);
+      } else {
+        cb2(null, msg);
+      }
+
+    });
+  }
+
+  function makeSink(device) {
+    return pull(pull.asyncMap((msg, cb2) => {
+      write(device, msg, cb2, 3);
+      
+    }), pull.drain());
+  }
+
+  function connect (address, cb) {
+    console.log("Attempt outgoing to bt" + address);
+
+    if (outgoingConnection != false) {
+      throw new Error("Already established connection - only one allowed for now.");
+    }
+
+    connection = true;
+
+    var source = Pushable();
+    var sink = makeSink(btSerial);
+
+      btSerial.connect(address, 9, function() {
+        console.log("connected to " + address);
+  
+        btSerial.on('data', function(buffer) {
+       //   console.log("Receiving: " + buffer.toString());
+          source.push(buffer);
+        });
+
+        var duplexConnection = {
+          source: source,
+          sink: sink
+        }
+
+        cb(null, duplexConnection);
+      }, function () {
+        cb ("Cannot connect to " + address, null);
+        console.log('cannot connect');
+      });
+
   }
 
   function disconnect(address) {
@@ -27,22 +83,9 @@ module.exports = function makeBluetoothManager() {
     connection = null;
   }
 
-  function writeData(data) {
-
-  //  console.log("I want to write... ");
-  //  console.log(data.toString());
-
-    server.write(data, function (err, bytesWritten) {
-              if (err) {
-                  console.log('Error! ' + err);
-              } else {
-              //    console.log('Send ' + bytesWritten + ' to the client!');
-              }
-          })
-  }
-
   function setDuplexStream() {
-    var sink = pull.drain(writeData);
+    var sink = makeSink(server);
+
     var source = Pushable();
 
     connection = {
@@ -52,11 +95,17 @@ module.exports = function makeBluetoothManager() {
   }
 
   function listenForIncomingConnections(onConnection) {
+
+    if (listening) {
+      return;
+    }
+
     console.log("About to listen for incoming bluetooth connections.")
+
     server.listen(function (clientAddress) {
 
       if (connection != null) {
-        throw new Error("Already established connection - only one allowed for testing.");
+        throw new Error("Already established connection - only one allowed for now.");
       }
 
       setDuplexStream();
