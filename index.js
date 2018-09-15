@@ -3,6 +3,7 @@ var btSerial = new (require('bluetooth-serial-port')).BluetoothSerialPort();
 
 var pull = require('pull-stream');
 var Pushable = require('pull-pushable');
+var Abortable = require('pull-abortable');
 
 // TODO: allow multiple incoming and outgoing connections. At the moment,
 // only one incoming connection is supported
@@ -32,15 +33,16 @@ module.exports = function makeBluetoothManager() {
 
         setTimeout(() => write(device, restOfBuffer, cb2, retries - 1), 50);
       } else {
-        console.log("Wrote: " + msg.toString());
+        console.log("Wrote: " + bytes);
         cb2(null, msg);
       }
 
     });
   }
 
-  function makeSink(device) {
+  function makeSink(device, abortable) {
     return pull(
+      abortable,
       pull.asyncMap((msg, cb2) => {
       write(device, msg, cb2, 100);
       
@@ -56,8 +58,10 @@ module.exports = function makeBluetoothManager() {
 
     connection = true;
 
+    var abortable = Abortable();
+
     var source = Pushable();
-    var sink = makeSink(btSerial);
+    var sink = makeSink(btSerial, abortable);
 
       btSerial.connect(address, 9, function() {
         console.log("connected to " + address);
@@ -78,6 +82,17 @@ module.exports = function makeBluetoothManager() {
         console.log('cannot connect');
       });
 
+      btSerial.on( 'failure', (err) => {
+        
+        console.log("Connection failed");
+      });
+
+      btSerial.on( 'closed', (err) => {
+        abortable.abort();
+        source.end();
+        outgoingConnection = false;
+      });
+
   }
 
   function disconnect(address) {
@@ -87,8 +102,9 @@ module.exports = function makeBluetoothManager() {
     connection = null;
   }
 
-  function setDuplexStream() {
-    var sink = makeSink(server);
+  function setDuplexStream(abortable) {
+
+    var sink = makeSink(server, abortable);
 
     var source = Pushable();
 
@@ -106,17 +122,25 @@ module.exports = function makeBluetoothManager() {
 
     console.log("About to listen for incoming bluetooth connections.")
 
+    var abortable = Abortable();
+
     server.listen(function (clientAddress) {
 
       if (connection != null) {
         throw new Error("Already established connection - only one allowed for now.");
       }
 
-      setDuplexStream();
+      setDuplexStream(abortable);
       console.log("Calling back with connection from " + clientAddress);
       onConnection(null, connection);
     }, function(error){
     }, {uuid: UUID, channel: CHANNEL} );
+
+    server.on( 'closed', (err) => {
+      abortable.abort();
+      connection.source.end();
+      connection = null;
+    });
   }
 
   function stopServer() {

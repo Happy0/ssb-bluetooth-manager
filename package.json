@@ -10,6 +10,7 @@
   "license": "MIT",
   "dependencies": {
     "bluetooth-serial-port": "file:../node-bluetooth-serial-port",
+    "pull-abortable": "^4.1.1",
     "pull-pushable": "^2.2.0",
     "pull-stream": "^3.6.9"
   },
