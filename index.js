@@ -25,37 +25,24 @@ module.exports = function makeBluetoothManager() {
       
       if (retries == 0 && err) {
         cb2(err, null);
-      } else if (err) {
-        console.log("Retrying...");
-        console.log(msg.toString())
+      } else if (err || bytes !== msg.length) {
 
-        setTimeout(() => write(device, msg, cb2, retries - 1), 200);
+        var bytesSuccessfullySent = bytes === -1 ? 0: bytes;
+        var restOfBuffer = msg.slice(bytesSuccessfullySent, msg.length);
+
+        setTimeout(() => write(device, restOfBuffer, cb2, retries - 1), 50);
       } else {
+        console.log("Wrote: " + msg.toString());
         cb2(null, msg);
       }
 
     });
   }
 
-  function breakBuffer(buffer, bytesPerBuffer) {
-    var bufferLength = buffer.length;
-
-    var start = 0;
-    var result = [];
-
-    while (start < bufferLength) {
-      result.push(buffer.slice(start, start += bytesPerBuffer));
-    }
-
-    return result;
-  }
-
   function makeSink(device) {
     return pull(
-      pull.map((buffer) => breakBuffer(buffer, 100)),
-      pull.flatten(),
       pull.asyncMap((msg, cb2) => {
-      write(device, msg, cb2, 10);
+      write(device, msg, cb2, 100);
       
     }), pull.drain());
   }
