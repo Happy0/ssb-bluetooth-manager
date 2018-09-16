@@ -33,7 +33,7 @@ module.exports = function makeBluetoothManager() {
 
         setTimeout(() => write(device, restOfBuffer, cb2, retries - 1), 50);
       } else {
-        console.log("Wrote: " + bytes);
+    //    console.log("Wrote: " + bytes);
         cb2(null, msg);
       }
 

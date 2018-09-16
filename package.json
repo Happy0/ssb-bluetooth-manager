@@ -9,7 +9,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "bluetooth-serial-port": "file:../node-bluetooth-serial-port",
+    "bluetooth-serial-port": "happy0/node-bluetooth-serial-port#a5798146de3d2f0ff19a99d78c178b93990717b3",
     "pull-abortable": "^4.1.1",
     "pull-pushable": "^2.2.0",
     "pull-stream": "^3.6.9"
