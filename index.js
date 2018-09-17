@@ -28,12 +28,15 @@ module.exports = function makeBluetoothManager() {
         cb2(err, null);
       } else if (err || bytes !== msg.length) {
 
+        // Could not send all the bytes. Retry the bytes that weren't sent.
+
         var bytesSuccessfullySent = bytes === -1 ? 0: bytes;
         var restOfBuffer = msg.slice(bytesSuccessfullySent, msg.length);
 
+        // Wait 50 milliseconds before retrying
         setTimeout(() => write(device, restOfBuffer, cb2, retries - 1), 50);
       } else {
-    //    console.log("Wrote: " + bytes);
+        console.log("Wrote: " + bytes);
         cb2(null, msg);
       }
 
@@ -53,7 +56,7 @@ module.exports = function makeBluetoothManager() {
     console.log("Attempt outgoing to bt" + address);
 
     if (outgoingConnection != false) {
-      throw new Error("Already established connection - only one allowed for now.");
+      cb("Already established bluetooth connection - only one allowed for now.", null);
     }
 
     connection = true;
@@ -127,7 +130,8 @@ module.exports = function makeBluetoothManager() {
     server.listen(function (clientAddress) {
 
       if (connection != null) {
-        throw new Error("Already established connection - only one allowed for now.");
+        console.log("Already established incoming bluetooth connection - only one allowed for now.");
+        return;
       }
 
       setDuplexStream(abortable);
