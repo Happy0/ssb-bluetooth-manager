@@ -1,6 +1,6 @@
 {
   "name": "ssb-bluetooth-manager",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -9,7 +9,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "bluetooth-serial-port": "happy0/node-bluetooth-serial-port#a5798146de3d2f0ff19a99d78c178b93990717b3",
+    "bluetooth-serial-port": "happy0/node-bluetooth-serial-port#97d369f7f5b4f7bcf6e11c7aa5a2c11593d7203d",
     "pull-abortable": "^4.1.1",
     "pull-pushable": "^2.2.0",
     "pull-stream": "^3.6.9"

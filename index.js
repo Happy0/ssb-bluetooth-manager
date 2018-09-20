@@ -19,9 +19,10 @@ module.exports = function makeBluetoothManager() {
 
   var outgoingConnection = false;
 
-  var listening = true;
+  var listening = false;
 
   function write(device, msg, cb2, retries) {
+
     device.write( msg, (err, bytes) => {
       
       if (retries == 0 && err) {
@@ -33,14 +34,18 @@ module.exports = function makeBluetoothManager() {
         var bytesSuccessfullySent = bytes === -1 ? 0: bytes;
         var restOfBuffer = msg.slice(bytesSuccessfullySent, msg.length);
 
+      //  console.log("[Success]: " + msg.slice(0, bytesSuccessfullySent).toString());
+      //  console.log("[Retrying]", restOfBuffer.toString());
+
         // Wait 50 milliseconds before retrying
         setTimeout(() => write(device, restOfBuffer, cb2, retries - 1), 50);
       } else {
-        console.log("Wrote: " + bytes);
+        //console.log("[" + bytes + "]" + " " + msg.toString());
         cb2(null, msg);
       }
 
     });
+
   }
 
   function makeSink(device, abortable) {
@@ -70,7 +75,7 @@ module.exports = function makeBluetoothManager() {
         console.log("connected to " + address);
   
         btSerial.on('data', function(buffer) {
-       //   console.log("Receiving: " + buffer.toString());
+      //    console.log("Receiving: " + buffer.toString());
           source.push(buffer);
         });
 
@@ -123,6 +128,8 @@ module.exports = function makeBluetoothManager() {
       return;
     }
 
+    listening = true;
+
     console.log("About to listen for incoming bluetooth connections.")
 
     var abortable = Abortable();
@@ -152,7 +159,7 @@ module.exports = function makeBluetoothManager() {
   }
 
   server.on('data', function(buffer) {
-    // console.log("Received: " + buffer.toString());
+     //console.log("Received: " + buffer.toString());
       connection.source.push(buffer);
   });
 
